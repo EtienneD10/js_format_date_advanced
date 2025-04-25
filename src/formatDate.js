@@ -8,55 +8,34 @@
  * @returns {string}
  */
 function formatDate(date, fromFormat, toFormat) {
-  const fromSeparator = fromFormat[3];
-  const toSeparator = toFormat[3];
+  const separatorFrom = fromFormat[3];
+  const separatorTo = toFormat[3];
 
-  const splittedFromDate = date.split(fromSeparator);
+  const parts = date.split(separatorFrom);
+  const map = {};
 
-  let fromYear = 0;
-  let fromMonth = 0;
-  let fromDay = 0;
-  let fromYearFormat = '';
-
-  for (let i = 0; i < fromFormat.length - 1; i++) {
-    if (fromFormat[i] === 'YYYY' || fromFormat[i] === 'YY') {
-      fromYear = splittedFromDate[i];
-      fromYearFormat = fromFormat[i];
-    } else if (fromFormat[i] === 'MM') {
-      fromMonth = splittedFromDate[i];
-    } else if (fromFormat[i] === 'DD') {
-      fromDay = splittedFromDate[i];
-    }
+  // Binding values to keys with fromFormat
+  for (let i = 0; i < 3; i++) {
+    map[fromFormat[i]] = parts[i];
   }
 
-  let toYear = 0;
-  const toDateArr = [];
+  //  з YY → YYYY
+  if (fromFormat.includes('YY') && toFormat.includes('YYYY')) {
+    const yy = parseInt(map['YY']);
 
-  for (let i = 0; i < toFormat.length - 1; i++) {
-    if (toFormat[i] === 'YYYY') {
-      if (fromYearFormat === 'YYYY') {
-        toYear = fromYear;
-      } else if (fromYearFormat === 'YY' && fromYear < 30) {
-        toYear = Number('20' + fromYear);
-      } else {
-        toYear = Number('19' + fromYear);
-      }
-      toDateArr.push(toYear);
-    } else if (toFormat[i] === 'YY') {
-      if (fromYearFormat === 'YY') {
-        toYear = fromYear;
-      } else {
-        toYear = fromYear % 100;
-      }
-      toDateArr.push(toYear);
-    } else if (toFormat[i] === 'MM') {
-      toDateArr.push(fromMonth);
-    } else if (toFormat[i] === 'DD') {
-      toDateArr.push(fromDay);
-    }
+    map['YYYY'] = yy < 30 ? `20${map['YY']}` : `19${map['YY']}`;
   }
 
-  return toDateArr.join(toSeparator);
+  // Перетворення з YYYY → YY
+  if (fromFormat.includes('YYYY') && toFormat.includes('YY')) {
+    map['YY'] = map['YYYY'].slice(-2);
+  }
+
+  // Формування фінального рядка
+  return toFormat
+    .slice(0, 3)
+    .map((key) => map[key])
+    .join(separatorTo);
 }
 
 module.exports = formatDate;
