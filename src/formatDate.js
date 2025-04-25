@@ -8,33 +8,55 @@
  * @returns {string}
  */
 function formatDate(date, fromFormat, toFormat) {
-  // write code here
-  const separatorFrom = fromFormat[fromFormat.length - 1];
-  const separatorTo = toFormat[toFormat.length - 1];
+  const fromSeparator = fromFormat[3];
+  const toSeparator = toFormat[3];
 
-  const dateParts = date.split(separatorFrom);
-  const dateMap = {};
+  const splittedFromDate = date.split(fromSeparator);
 
-  fromFormat.slice(0, -1).forEach((part, index) => {
-    dateMap[part] = dateParts[index];
-  });
+  let fromYear = 0;
+  let fromMonth = 0;
+  let fromDay = 0;
+  let fromYearFormat = '';
 
-  const formattedDate = toFormat
-    .slice(0, -1)
-    .map((part) => {
-      if (part === 'YY' && dateMap['YYYY']) {
-        return dateMap['YYYY'].slice(-2);
-      } else if (part === 'YYYY' && dateMap['YY']) {
-        const year = parseInt(dateMap['YY'], 10);
+  for (let i = 0; i < fromFormat.length - 1; i++) {
+    if (fromFormat[i] === 'YYYY' || fromFormat[i] === 'YY') {
+      fromYear = splittedFromDate[i];
+      fromYearFormat = fromFormat[i];
+    } else if (fromFormat[i] === 'MM') {
+      fromMonth = splittedFromDate[i];
+    } else if (fromFormat[i] === 'DD') {
+      fromDay = splittedFromDate[i];
+    }
+  }
 
-        return year < 30 ? `20${dateMap['YY']}` : `19${dateMap['YY']}`;
+  let toYear = 0;
+  const toDateArr = [];
+
+  for (let i = 0; i < toFormat.length - 1; i++) {
+    if (toFormat[i] === 'YYYY') {
+      if (fromYearFormat === 'YYYY') {
+        toYear = fromYear;
+      } else if (fromYearFormat === 'YY' && fromYear < 30) {
+        toYear = Number('20' + fromYear);
+      } else {
+        toYear = Number('19' + fromYear);
       }
+      toDateArr.push(toYear);
+    } else if (toFormat[i] === 'YY') {
+      if (fromYearFormat === 'YY') {
+        toYear = fromYear;
+      } else {
+        toYear = fromYear % 100;
+      }
+      toDateArr.push(toYear);
+    } else if (toFormat[i] === 'MM') {
+      toDateArr.push(fromMonth);
+    } else if (toFormat[i] === 'DD') {
+      toDateArr.push(fromDay);
+    }
+  }
 
-      return dateMap[part];
-    })
-    .join(separatorTo);
-
-  return formattedDate;
+  return toDateArr.join(toSeparator);
 }
 
 module.exports = formatDate;
